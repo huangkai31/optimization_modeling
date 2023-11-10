@@ -1,0 +1,44 @@
+notebooks/data
+data
+
+# byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# tests and coverage
+*.pytest_cache
+.coverage
+.env
+
+# database & logs
+*.db
+*.sqlite3
+*.log
+
+# venv
+env
+venv
+
+# other
+.DS_Store
+
+# javascript
+package-lock.json
+
+staticfiles/*
+!staticfiles/.gitkeep 
+.vscode/symbols.json
+
+apps/static/assets/node_modules
+apps/static/assets/yarn.lock
+apps/static/assets/.temp
+
+notebooks/*.sql
+notebooks/*.gz
+notebooks/*.csv
+
+pycaret
+apps/catboost_info
+apps/models
+docs/~$竹园课题-人工智能算法研究报告.pptx
+api/aiapi_20230109.tar.gz
