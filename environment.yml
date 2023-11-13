@@ -1,0 +1,12 @@
+name: opt
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - streamlit=1.28.1
+  - pyomo=6.6.2
+  - matplotlib=3.5.3
+  - ipopt=3.13.3
+  - coincbc=2.10.3
+  - glpk=4.65
+

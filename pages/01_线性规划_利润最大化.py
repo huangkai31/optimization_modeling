@@ -3,11 +3,13 @@ import pyomo.environ as pyo
 import streamlit as st
 import os
 
-solver_ipopt = ( os.path.dirname(__file__)+'/../solver/ipopt')
 st.set_page_config(
     page_title="线性规划：利润最大化",
     layout="wide"
 )
+solver = st.selectbox(
+    label='求解器',
+    options=('ipopt','cbc','glpk'))
 
 tab1, tab2, tab3 , tab4 = st.tabs(["限量产品X", "不限量产品Y", "X Y组合", "约束条件绘图"])
 
@@ -39,14 +41,14 @@ with tab1:
         sense = pyo.maximize)
 
     # declare constraints
-    model.demand = pyo.Constraint(expr = model.x <= demand_x )
+    model.demand_x = pyo.Constraint(expr = model.x <= demand_x )
     model.laborA = pyo.Constraint(expr = model.x <= a_limit )
     model.laborB = pyo.Constraint(expr = 2*model.x <= b_limit )
 
     # solve
-    pyo.SolverFactory(solver_ipopt).solve(model)
-
-    st.write(f"每周生产 { int(model.x()) } 个产品 X ，获得最大利润 { int(model.profit())} 元")
+    pyo.SolverFactory(solver).solve(model)
+    x_only = int(model.x())
+    st.write(f"每周生产 { x_only } 个产品 X ，获得最大利润 { int(model.profit())} 元")
 
 with tab2:
     st.write("""
@@ -65,53 +67,61 @@ with tab2:
     )
     model.laborA = pyo.Constraint(expr = model.y <= a_limit )
     model.laborB = pyo.Constraint(expr = model.y <= b_limit )
-    pyo.SolverFactory('ipopt').solve(model)
-
-    st.write(f"每周生产 { int(model.y()) } 个产品 Y ，获得最大利润 { int(model.profit())} 元")
+    pyo.SolverFactory(solver).solve(model)
+    y_only = int(model.y())
+    st.write(f"每周生产 { y_only } 个产品 Y ，获得最大利润 { int(model.profit())} 元")
 
 with tab3:
     st.write("假如同时生产 X 和 Y，则最大利润是多少？")
     model = pyo.ConcreteModel()
+    model.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
+
     model.x = pyo.Var(domain=pyo.NonNegativeIntegers)
     model.y = pyo.Var(domain=pyo.NonNegativeIntegers)
     model.profit = pyo.Objective(
         expr = (price_y - raw_cost_y - a_cost - b_cost) * model.y +  (price_x - raw_cost_x - a_cost - 2 * b_cost)  * model.x,
         sense = pyo.maximize
     )
-    model.demand = pyo.Constraint(expr = model.x <= demand_x )
+    model.demand_x = pyo.Constraint(expr = model.x <= demand_x )
     model.laborA = pyo.Constraint(expr = (model.x + model.y) <= a_limit )
     model.laborB = pyo.Constraint(expr = (2*model.x + model.y) <= b_limit )
-    pyo.SolverFactory('ipopt').solve(model)
+    pyo.SolverFactory(solver).solve(model)
+    y_count = int(model.y())
+    x_count = int(model.x())
+    st.write(f"每周生产 {x_count} 个 X 产品， {y_count} 个 Y 产品，获得最大利润 {int(model.profit())}")
 
-    st.write(f"每周生产 {int(model.x())} 个 X 产品， {int(model.y())} 个 Y 产品，获得最大利润 {int(model.profit())}")
+    st.write("敏感性分析，即增加以下约束条件的值会增加利润")
+    st.write(f"X 市场需求 = {round(model.dual[model.demand_x], 0)}")
+    st.write(f"劳动力A 工时 = {round(model.dual[model.laborA], 0)}")
+    st.write(f"劳动力B 工时 = {round(model.dual[model.laborB], 0)}")
 
 with tab4:
     st.header("约束条件")
+    st.write("以下图表展示了默认参数的约束条件")
     import matplotlib.pyplot as plt
     import numpy as np
 
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     ax.set_aspect('equal')
     ax.axis([0, 100, 0, 100])
-
-    ax.set_xlabel('X 产品')
+    ax.set_xlabel('X Production')
     ax.set_ylabel('Y Production')
 
     # Labor A constraint
-    x = np.array([0, a_limit])
-    ax.plot(x, a_limit - x, 'r', lw=2)
+    x = np.array([0, 80])
+    ax.plot(x, 80 - x, 'r', lw=2)
 
     # Labor B constraint
-    x = np.array([0, b_limit])
-    ax.plot(x, b_limit - 2*x, 'b', lw=2)
+    x = np.array([0, 50])
+    ax.plot(x, 100 - 2*x, 'b', lw=2)
 
     # Demand constraint
-    ax.plot([demand_x, demand_x], [0, 100], 'g', lw=2)
+    ax.plot([40, 40], [0, 100], 'g', lw=2)
 
     ax.legend(['Labor A Constraint', 'Labor B Constraint', 'Demand Constraint'])
-    ax.fill_between([0, a_limit, 100], [a_limit, 0,0 ], [100, 100, 100], color='r', alpha=0.15)
-    ax.fill_between([0, b_limit, 100], [2*b_limit, 0, 0], [100, 100, 100], color='b', alpha=0.15)
-    ax.fill_between([demand_x, 100], [0, 0], [100, 100], color='g', alpha=0.15)
+    ax.fill_between([0, 80, 100], [80, 0,0 ], [100, 100, 100], color='r', alpha=0.15)
+    ax.fill_between([0, 50, 100], [100, 0, 0], [100, 100, 100], color='b', alpha=0.15)
+    ax.fill_between([40, 100], [0, 0], [100, 100], color='g', alpha=0.15)
 
     # Contours of constant profit
     x = np.array([0, 100])
@@ -133,4 +143,5 @@ with tab4:
 
     ax.text(4, 23, 'Increasing Profit')
     ax.annotate('', xy=(20, 15), xytext=(0,0), arrowprops=arrowprops)
+
     st.pyplot(fig)
