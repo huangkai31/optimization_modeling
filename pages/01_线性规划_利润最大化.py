@@ -1,7 +1,9 @@
 
 import pyomo.environ as pyo
 import streamlit as st
+import os
 
+solver_ipopt = ( os.path.dirname(__file__)+'/../solver/ipopt')
 st.set_page_config(
     page_title="线性规划：利润最大化",
     layout="wide"
@@ -42,7 +44,7 @@ with tab1:
     model.laborB = pyo.Constraint(expr = 2*model.x <= b_limit )
 
     # solve
-    pyo.SolverFactory('ipopt').solve(model)
+    pyo.SolverFactory(solver_ipopt).solve(model)
 
     st.write(f"每周生产 { int(model.x()) } 个产品 X ，获得最大利润 { int(model.profit())} 元")
 
