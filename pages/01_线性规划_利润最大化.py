@@ -2,14 +2,24 @@
 import pyomo.environ as pyo
 import streamlit as st
 import os
+import shutil
 
 st.set_page_config(
     page_title="线性规划：利润最大化",
     layout="wide"
 )
+
+solvers = []
+for s in ['ipopt', 'cbc' ]:
+    if shutil.which(s):
+        solvers.append(s)
+
+if shutil.which('glpsol'):
+    solvers.append('glpk')
+
 solver = st.selectbox(
     label='求解器',
-    options=('ipopt','cbc','glpk'))
+    options=solvers)
 
 tab1, tab2, tab3 , tab4 = st.tabs(["限量产品X", "不限量产品Y", "X Y组合", "约束条件绘图"])
 
@@ -74,10 +84,11 @@ with tab2:
 with tab3:
     st.write("假如同时生产 X 和 Y，则最大利润是多少？")
     model = pyo.ConcreteModel()
-    model.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
+    if solver in ['ipopt', 'cbc']:
+        model.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
 
-    model.x = pyo.Var(domain=pyo.NonNegativeIntegers)
-    model.y = pyo.Var(domain=pyo.NonNegativeIntegers)
+    model.x = pyo.Var(domain=pyo.NonNegativeReals)
+    model.y = pyo.Var(domain=pyo.NonNegativeReals)
     model.profit = pyo.Objective(
         expr = (price_y - raw_cost_y - a_cost - b_cost) * model.y +  (price_x - raw_cost_x - a_cost - 2 * b_cost)  * model.x,
         sense = pyo.maximize
@@ -90,10 +101,11 @@ with tab3:
     x_count = int(model.x())
     st.write(f"每周生产 {x_count} 个 X 产品， {y_count} 个 Y 产品，获得最大利润 {int(model.profit())}")
 
-    st.write("敏感性分析，即增加以下约束条件的值会增加利润")
-    st.write(f"X 市场需求 = {round(model.dual[model.demand_x], 0)}")
-    st.write(f"劳动力A 工时 = {round(model.dual[model.laborA], 0)}")
-    st.write(f"劳动力B 工时 = {round(model.dual[model.laborB], 0)}")
+    if solver in ['ipopt', 'cbc']:
+        st.write("敏感性分析，即增加以下约束条件的值会增加利润")
+        st.write(f"X 市场需求 = {round(model.dual[model.demand_x], 0)}")
+        st.write(f"劳动力A 工时 = {round(model.dual[model.laborA], 0)}")
+        st.write(f"劳动力B 工时 = {round(model.dual[model.laborB], 0)}")
 
 with tab4:
     st.header("约束条件")
