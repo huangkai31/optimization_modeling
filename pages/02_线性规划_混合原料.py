@@ -15,13 +15,13 @@ tab1, tab2 = st.tabs(["最小成本勾兑问题","酒精灯燃料混合问题"])
 
 with tab1:
     st.write("""
-一家啤酒厂收到了100加仑4% ABV(酒精含量)啤酒的订单。
-             这家啤酒厂现有的啤酒A酒精含量为4.5%，每加仑成本为0.32美元，
-             啤酒B酒精含量为3.7%，每加仑成本为0.25美元。
-             水也可以作为混合剂，每加仑成本为0.05美元。找到满足客户需求的最低成本组合。
+一家啤酒厂收到了100升4% ABV(酒精含量)啤酒的订单。
+             这家啤酒厂现有的啤酒A酒精含量为4.5%，每升成本为0.32元，
+             啤酒B酒精含量为3.7%，每升成本为0.25元。
+             水也可以作为混合剂，每升成本为0.05元。找到满足客户需求的最低成本组合。
 """)
     
-    order_vol = st.number_input("订单（加仑）", value=100, min_value=0)
+    order_vol = st.number_input("订单（升）", value=100, min_value=0)
     order_abv = st.number_input("订单（酒精含量）", value=0.04, min_value=0.0, max_value=0.1, format='%f')
     df = pd.DataFrame([
         {'原料':'A', '酒精含量': 0.045, '成本': 0.32},
@@ -50,10 +50,10 @@ with tab1:
 
     st.write('最小成本混合方案')
     for c in materials.keys():
-        st.write('  ', c, ':', round(model.x[c](), 2), '加仑')
+        st.write('  ', c, ':', round(model.x[c](), 2), '升')
     
-    st.write('容积 = ', round(model.vol(), 2), ' 加仑')
-    st.write('成本 = $', round(model.cost(), 2))
+    st.write('容积 = ', round(model.vol(), 2), ' 升')
+    st.write('成本 = ', round(model.cost(), 2), ' 元')
     
 
 with tab2:

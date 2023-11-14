@@ -100,12 +100,14 @@ with tab4:
     st.write("以下图表展示了默认参数的约束条件")
     import matplotlib.pyplot as plt
     import numpy as np
+    plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
+    plt.rcParams['font.sans-serif'] = ['Noto Sans CJK JP']  # 中文字体
 
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
     ax.set_aspect('equal')
     ax.axis([0, 100, 0, 100])
-    ax.set_xlabel('X Production')
-    ax.set_ylabel('Y Production')
+    ax.set_xlabel('X 产品')
+    ax.set_ylabel('Y 产品')
 
     # Labor A constraint
     x = np.array([0, 80])
@@ -118,7 +120,7 @@ with tab4:
     # Demand constraint
     ax.plot([40, 40], [0, 100], 'g', lw=2)
 
-    ax.legend(['Labor A Constraint', 'Labor B Constraint', 'Demand Constraint'])
+    ax.legend(['工人 A 约束', '工人 B 约束', 'X 市场需求约束'])
     ax.fill_between([0, 80, 100], [80, 0,0 ], [100, 100, 100], color='r', alpha=0.15)
     ax.fill_between([0, 50, 100], [100, 0, 0], [100, 100, 100], color='b', alpha=0.15)
     ax.fill_between([40, 100], [0, 0], [100, 100], color='g', alpha=0.15)
@@ -133,15 +135,15 @@ with tab4:
 
     # Optimum
     ax.plot(20, 60, 'r.', ms=20)
-    ax.annotate('Mixed Product Strategy', xy=(20, 60), xytext=(50, 70), arrowprops=arrowprops)
+    ax.annotate('混合生产 X+Y', xy=(20, 60), xytext=(50, 70), arrowprops=arrowprops)
 
     ax.plot(0, 80, 'b.', ms=20)
-    ax.annotate('Y Only', xy=(0, 80), xytext=(20, 90), arrowprops=arrowprops)
+    ax.annotate('Y', xy=(0, 80), xytext=(20, 90), arrowprops=arrowprops)
 
     ax.plot(40, 0, 'b.', ms=20)
-    ax.annotate('X Only', xy=(40, 0), xytext=(70, 20), arrowprops=arrowprops)
+    ax.annotate('X', xy=(40, 0), xytext=(70, 20), arrowprops=arrowprops)
 
-    ax.text(4, 23, 'Increasing Profit')
+    ax.text(4, 23, '利润')
     ax.annotate('', xy=(20, 15), xytext=(0,0), arrowprops=arrowprops)
 
     st.pyplot(fig)
